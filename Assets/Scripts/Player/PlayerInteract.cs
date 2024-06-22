@@ -4,14 +4,16 @@ using UnityEngine;
 
 public class PlayerInteract : MonoBehaviour
 {
-    private Camera cam;
-    [SerializeField] float distance = 3f;
-    [SerializeField] LayerMask mask;
-    private PlayerUi playerUi;
-    private InputManager inputManager;
+    private Camera cam; // Reference to the player's camera
+    [SerializeField] float distance = 3f; // Interaction distance
+    [SerializeField] LayerMask mask; // Layer mask to specify what objects the player can interact with
+    private PlayerUi playerUi; // Reference to the PlayerUi script
+    private InputManager inputManager; // Reference to the InputManager script
+
     // Start is called before the first frame update
     void Start()
     {
+        // Initialize references to other components
         cam = GetComponent<PlayerLook>().cam;
         playerUi = GetComponent<PlayerUi>();
         inputManager = GetComponent<InputManager>();
@@ -20,19 +22,27 @@ public class PlayerInteract : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Clear the UI text every frame
         playerUi.UpdateText(string.Empty);
-        //create a ray at the center of the camera, shooting outwards.
+
+        // Create a ray at the center of the camera, shooting outwards
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-        Debug.DrawRay(ray.origin, ray.direction * distance);
-        RaycastHit hitInfo; // variable to store our collision information.
-        if(Physics.Raycast(ray, out hitInfo, distance, mask))
+        Debug.DrawRay(ray.origin, ray.direction * distance); // Visualize the ray in the editor
+
+        RaycastHit hitInfo; // Variable to store collision information
+        if (Physics.Raycast(ray, out hitInfo, distance, mask))
         {
-            if(hitInfo.collider.GetComponent<Interactable>() != null)
+            // Check if the hit object has an Interactable component
+            Interactable interactable = hitInfo.collider.GetComponent<Interactable>();
+            if (interactable != null)
             {
-                Interactable interactable = hitInfo.collider.GetComponent<Interactable>();
+                // Update the UI text with the interactable's prompt message
                 playerUi.UpdateText(interactable.promptMassage);
-                if(inputManager.onFootActions.Interact.triggered)
+
+                // Check if the interact button was pressed
+                if (inputManager.onFootActions.Interact.triggered)
                 {
+                    // Execute the interaction
                     interactable.BaseInteract();
                 }
             }

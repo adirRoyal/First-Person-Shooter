@@ -4,38 +4,46 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    private CharacterController characterController;
-    private Vector3 playerVelocity;
-    private bool isGrounded;
-    private bool sprinting;
-    private bool crouching;
-    private bool lerpCrouch;
-    private float crouchTimer = 2f;
-    [SerializeField] float speed = 5f;
-    [SerializeField] float gravity = -9.8f;
-    [SerializeField] float jumpHeight = 3f;
+    private CharacterController characterController; // Reference to the CharacterController component
+    private Vector3 playerVelocity; // Stores the player's current velocity
+    private bool isGrounded; // Checks if the player is on the ground
+    private bool sprinting; // Checks if the player is sprinting
+    private bool crouching; // Checks if the player is crouching
+    private bool lerpCrouch; // Indicates if the player is transitioning between crouching and standing
+    private float crouchTimer = 2f; // Timer for crouch transition
+    [SerializeField] float speed = 5f; // Player's normal movement speed
+    [SerializeField] float gravity = -9.8f; // Gravity affecting the player
+    [SerializeField] float jumpHeight = 3f; // Player's jump height
 
     // Start is called before the first frame update
     void Start()
     {
-        characterController = GetComponent<CharacterController>();
+        characterController = GetComponent<CharacterController>(); // Initialize the CharacterController
     }
 
     // Update is called once per frame
     void Update()
     {
-        isGrounded = characterController.isGrounded;
-        if(lerpCrouch)
+        isGrounded = characterController.isGrounded; // Update isGrounded status
+
+        HandleCrouchTransition(); // Handle crouch/stand transition
+    }
+
+    // Handle crouch/stand transition with lerp
+    private void HandleCrouchTransition()
+    {
+        if (lerpCrouch)
         {
             crouchTimer += Time.deltaTime;
             float p = crouchTimer / 1;
-            p *= p;
+            p *= p; // Smoothing factor
+
             if (crouching)
                 characterController.height = Mathf.Lerp(characterController.height, 1, p);
             else
                 characterController.height = Mathf.Lerp(characterController.height, 2, p);
 
-            if(p > 1)
+            if (p > 1)
             {
                 lerpCrouch = false;
                 crouchTimer = 0f;
@@ -43,19 +51,27 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    //receive the inputs for our InputManager.cs and apply them to our character controller.
+    // Process movement based on input
     public void ProcessMove(Vector2 input)
     {
-        Vector3 moveDirection = Vector3.zero;
-        moveDirection.x = input.x;
-        moveDirection.z = input.y;
-        characterController.Move(transform.TransformDirection(moveDirection) * speed * Time.deltaTime);
+        Vector3 moveDirection = new Vector3(input.x, 0, input.y); // Create movement direction vector
+        characterController.Move(transform.TransformDirection(moveDirection) * speed * Time.deltaTime); // Move the player
+        ApplyGravity(); // Apply gravity
+    }
+
+    // Apply gravity to the player
+    private void ApplyGravity()
+    {
         playerVelocity.y += gravity * Time.deltaTime;
+
         if (isGrounded && playerVelocity.y < 0)
             playerVelocity.y = -2f;
+
         characterController.Move(playerVelocity * Time.deltaTime);
         Debug.Log(playerVelocity.y);
     }
+
+    // Make the player jump
     public void Jump()
     {
         if (isGrounded)
@@ -63,18 +79,19 @@ public class PlayerMovement : MonoBehaviour
             playerVelocity.y = Mathf.Sqrt(jumpHeight * -3.0f * gravity);
         }
     }
+
+    // Toggle crouch state
     public void Crouch()
     {
         crouching = !crouching;
         crouchTimer = 0;
         lerpCrouch = true;
     }
+
+    // Toggle sprint state and adjust speed
     public void Sprint()
     {
         sprinting = !sprinting;
-        if (sprinting)
-            speed = 8;
-        else
-            speed = 5;
+        speed = sprinting ? 8 : 5;
     }
 }
