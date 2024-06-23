@@ -6,26 +6,28 @@ using TMPro;
 
 public class PlayerHealth : MonoBehaviour
 {
-    // Current health of the player
-    float health;
-    // Timer for smooth health bar transitions
-    float lerpTimer;
-    // Maximum health value
-    public float maxHealth = 100f;
-    // Speed of the health bar transition
-    public float chipSpeed = 2f;
-    // UI element for the front health bar
-    public Image frontHealthBar;
-    // UI element for the back health bar
-    public Image backHealthBar;
-    // UI element for the health text
-    public TextMeshProUGUI healthText;
+    float health; // Current health of the player
+    float lerpTimer; // Timer for smooth health bar transitions
+    [Header("Health Bar")]
+    public float maxHealth = 100f; // Maximum health value
+    public float chipSpeed = 2f; // Speed of the health bar transition
+    public Image frontHealthBar; // UI element for the front health bar
+    public Image backHealthBar; // UI element for the back health bar
+    public TextMeshProUGUI healthText; // UI element for the health text
+
+    [Header("Damage Overlay")]
+    public Image overlay; // our DamageOverlay Gameobject
+    public float duration; // how long the image stays fully opaque
+    public float fadeSpeed; // how quickly the image will fade
+
+    private float durationTimer; // timer to check against the duration
 
     // Start is called before the first frame update
     void Start()
     {
         // Initialize health to maxHealth
         health = maxHealth;
+        overlay.color = new Color(overlay.color.r, overlay.color.g, overlay.color.b, 0);
     }
 
     // Update is called once per frame
@@ -35,17 +37,18 @@ public class PlayerHealth : MonoBehaviour
         health = Mathf.Clamp(health, 0, maxHealth);
         // Update the health UI elements
         UpdateHealthUI();
-
-        // Simulate taking damage when Z key is pressed
-        if (Input.GetKeyDown(KeyCode.Z))
+        if (overlay.color.a > 0)
         {
-            TakeDamage(Random.Range(5, 10));
-        }
-
-        // Simulate restoring health when X key is pressed
-        if (Input.GetKeyDown(KeyCode.X))
-        {
-            RestoreHealth(Random.Range(5, 10));
+            if (health < 30)
+                return;
+            durationTimer += Time.deltaTime;
+            if(durationTimer > duration)
+            {
+                // fade the image
+                float tempAlpha = overlay.color.a;
+                tempAlpha -= Time.deltaTime * fadeSpeed;
+                overlay.color = new Color(overlay.color.r, overlay.color.g, overlay.color.b, tempAlpha);
+            }
         }
     }
 
@@ -89,6 +92,8 @@ public class PlayerHealth : MonoBehaviour
     {
         health -= damage;
         lerpTimer = 0f;
+        durationTimer = 0f;
+        overlay.color = new Color(overlay.color.r, overlay.color.g, overlay.color.b, 1);
     }
 
     // Restore health by a specified amount
