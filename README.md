@@ -1,4 +1,4 @@
-Prototype First-Person-Shooter (Not Finish)
+Prototype First-Person-Shooter (Finish)
 
 Uses: New input system
 
